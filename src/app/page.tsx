@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, QrCode, Download } from "lucide-react";
+import { Loader2, QrCode, Download, X, ClipboardPaste } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 export default function Home() {
   const [text, setText] = useState("dDhkZmRfMTE0Mzg2OzYwMjQz");
@@ -29,6 +36,32 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [color, setColor] = useState("#000000");
   const { toast } = useToast();
+
+  const handlePaste = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      if (clipboardText) {
+        setText(clipboardText);
+        toast({
+          title: "Conteúdo Colado!",
+          description: "O texto da área de transferência foi colado.",
+        });
+      } else {
+        toast({
+          title: "Área de Transferência Vazia",
+          description: "Nenhum texto para colar.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to read clipboard contents: ", err);
+      toast({
+        title: "Falha ao Colar",
+        description: "Não foi possível ler o conteúdo da área de transferência.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const generateQrCode = async () => {
     if (!text) {
@@ -121,97 +154,124 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 font-body">
-      <Card className="w-full max-w-md shadow-xl rounded-2xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-4">
-            <QrCode className="h-8 w-8" />
-          </div>
-          <CardTitle className="text-3xl font-headline">QRCode Swift</CardTitle>
-          <CardDescription>
-            Digite um texto abaixo para gerar seu QR Code instantaneamente.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="space-y-2">
-              <Input
-                id="text"
-                placeholder="Ex: dDhkZmRfMTE0Mzg2OzYwMjQz"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyUp={(e) => e.key === 'Enter' && generateQrCode()}
-                aria-label="Texto para gerar QR Code"
-              />
+      <TooltipProvider>
+        <Card className="w-full max-w-md shadow-xl rounded-2xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-primary text-primary-foreground rounded-full p-3 w-fit mb-4">
+              <QrCode className="h-8 w-8" />
             </div>
-             <div className="space-y-3">
-              <Label>Cor do QR Code</Label>
-              <RadioGroup
-                defaultValue="#000000"
-                onValueChange={setColor}
-                className="flex space-x-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="#000000" id="c-black" />
-                  <Label htmlFor="c-black">Preto</Label>
+            <CardTitle className="text-3xl font-headline">QRCode Swift</CardTitle>
+            <CardDescription>
+              Digite um texto abaixo para gerar seu QR Code instantaneamente.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="text"
+                    placeholder="Ex: dDhkZmRfMTE0Mzg2OzYwMjQz"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyUp={(e) => e.key === 'Enter' && generateQrCode()}
+                    aria-label="Texto para gerar QR Code"
+                    className="flex-grow"
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={handlePaste} aria-label="Colar texto">
+                        <ClipboardPaste className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Colar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                       <Button variant="ghost" size="icon" onClick={() => setText("")} disabled={!text} aria-label="Limpar texto">
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Limpar</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="#3F51B5" id="c-blue" />
-                  <Label htmlFor="c-blue">Azul</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="#FF0000" id="c-red" />
-                  <Label htmlFor="c-red">Vermelho</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="#008000" id="c-green" />
-                  <Label htmlFor="c-green">Verde</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <Button
-              onClick={generateQrCode}
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <QrCode className="mr-2 h-4 w-4" />
-              )}
-              {isLoading ? "Gerando..." : "Gerar QR Code"}
-            </Button>
-          </div>
-
-          {qrCodeUrl && (
-            <div className="mt-8 flex flex-col items-center justify-center gap-4 animate-in fade-in-50 zoom-in-95 duration-500">
-              <p className="text-sm text-muted-foreground">Seu QR Code está pronto!</p>
-              <div className="rounded-lg border bg-card p-4 shadow-inner">
-                <Image
-                  src={qrCodeUrl}
-                  alt="Generated QR Code"
-                  width={256}
-                  height={256}
-                  className="rounded-md"
-                  priority
-                />
               </div>
-               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => downloadQrCode("png")}>PNG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => downloadQrCode("jpeg")}>JPG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => downloadQrCode("svg")}>SVG</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+               <div className="space-y-3">
+                <Label>Cor do QR Code</Label>
+                <RadioGroup
+                  defaultValue="#000000"
+                  onValueChange={setColor}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="#000000" id="c-black" />
+                    <Label htmlFor="c-black">Preto</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="#3F51B5" id="c-blue" />
+                    <Label htmlFor="c-blue">Azul</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="#FF0000" id="c-red" />
+                    <Label htmlFor="c-red">Vermelho</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="#008000" id="c-green" />
+                    <Label htmlFor="c-green">Verde</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <Button
+                onClick={generateQrCode}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <QrCode className="mr-2 h-4 w-4" />
+                )}
+                {isLoading ? "Gerando..." : "Gerar QR Code"}
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {qrCodeUrl && (
+              <div className="mt-8 flex flex-col items-center justify-center gap-4 animate-in fade-in-50 zoom-in-95 duration-500">
+                <p className="text-sm text-muted-foreground">Seu QR Code está pronto!</p>
+                <div className="rounded-lg border bg-card p-4 shadow-inner">
+                  <Image
+                    src={qrCodeUrl}
+                    alt="Generated QR Code"
+                    width={256}
+                    height={256}
+                    className="rounded-md"
+                    priority
+                  />
+                </div>
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => downloadQrCode("png")}>PNG</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadQrCode("jpeg")}>JPG</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => downloadQrCode("svg")}>SVG</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TooltipProvider>
     </main>
   );
 }
+
+    
