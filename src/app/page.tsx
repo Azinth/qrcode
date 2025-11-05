@@ -20,11 +20,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
   const [text, setText] = useState("dDhkZmRfMTE0Mzg2OzYwMjQz");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [color, setColor] = useState("#000000");
   const { toast } = useToast();
 
   const generateQrCode = async () => {
@@ -45,7 +48,7 @@ export default function Home() {
         quality: 0.92,
         margin: 1,
         color: {
-          dark: "#3F51B5", // Deep Blue from theme
+          dark: color,
           light: "#00000000", // Transparent background
         },
       });
@@ -73,7 +76,7 @@ export default function Home() {
           errorCorrectionLevel: "H",
           margin: 1,
           color: {
-            dark: "#3F51B5",
+            dark: color,
             light: "#FFFFFF", // SVG does not support transparent background easily
           },
         });
@@ -87,7 +90,7 @@ export default function Home() {
           quality: 0.92,
           margin: 1,
           color: {
-            dark: "#3F51B5",
+            dark: color,
             light: "#FFFFFF",
           },
         });
@@ -139,6 +142,31 @@ export default function Home() {
                 onKeyUp={(e) => e.key === 'Enter' && generateQrCode()}
                 aria-label="Texto para gerar QR Code"
               />
+            </div>
+             <div className="space-y-3">
+              <Label>Cor do QR Code</Label>
+              <RadioGroup
+                defaultValue="#000000"
+                onValueChange={setColor}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="#000000" id="c-black" />
+                  <Label htmlFor="c-black">Preto</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="#3F51B5" id="c-blue" />
+                  <Label htmlFor="c-blue">Azul</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="#FF0000" id="c-red" />
+                  <Label htmlFor="c-red">Vermelho</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="#008000" id="c-green" />
+                  <Label htmlFor="c-green">Verde</Label>
+                </div>
+              </RadioGroup>
             </div>
             <Button
               onClick={generateQrCode}
