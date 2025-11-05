@@ -12,8 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, QrCode } from "lucide-react";
+import { Loader2, QrCode, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Home() {
   const [text, setText] = useState("dDhkZmRfMTE0Mzg2OzYwMjQz");
@@ -55,6 +61,60 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
+  const downloadQrCode = async (format: "png" | "jpeg" | "svg") => {
+    try {
+      let dataUrl;
+      let fileExtension;
+
+      if (format === "svg") {
+        const svgString = await QRCode.toString(text, {
+          type: "svg",
+          errorCorrectionLevel: "H",
+          margin: 1,
+          color: {
+            dark: "#3F51B5",
+            light: "#FFFFFF", // SVG does not support transparent background easily
+          },
+        });
+        const blob = new Blob([svgString], { type: "image/svg+xml" });
+        dataUrl = URL.createObjectURL(blob);
+        fileExtension = "svg";
+      } else {
+        dataUrl = await QRCode.toDataURL(text, {
+          errorCorrectionLevel: "H",
+          type: `image/${format}`,
+          quality: 0.92,
+          margin: 1,
+          color: {
+            dark: "#3F51B5",
+            light: "#FFFFFF",
+          },
+        });
+        fileExtension = format;
+      }
+      
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `qrcode.${fileExtension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      if(format === 'svg') {
+        URL.revokeObjectURL(dataUrl);
+      }
+
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Erro no Download",
+        description: "Não foi possível fazer o download do QR Code.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 font-body">
@@ -107,6 +167,19 @@ export default function Home() {
                   priority
                 />
               </div>
+               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => downloadQrCode("png")}>PNG</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadQrCode("jpeg")}>JPG</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadQrCode("svg")}>SVG</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </CardContent>
