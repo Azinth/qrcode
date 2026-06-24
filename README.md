@@ -22,7 +22,7 @@ git commit -m "feat: inicializando projeto QRCode Swift"
 
 # Conecte ao seu repositório remoto
 # (Substitua a URL abaixo pela URL do repositório que você criou)
-git commit -m "feat: inicializando projeto QRCode Swift" https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git commit -m "feat: inicializando projeto QRCode Swift" https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git 
 
 # Renomeie a branch para main
 git branch -M main
